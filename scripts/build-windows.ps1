@@ -18,6 +18,7 @@ try {
     New-Item -ItemType Directory -Force -Path $ArtifactsDir | Out-Null
 
     $gradleArgs = @(
+        ":composeApp:clean",
         ":composeApp:createDistributable",
         ":composeApp:packageExe",
         ":composeApp:packageMsi",

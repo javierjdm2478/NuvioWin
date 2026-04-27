@@ -260,6 +260,8 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.currentOs)
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.ktor.client.cio)
                 implementation("org.openjfx:javafx-base:21.0.5:win")
                 implementation("org.openjfx:javafx-controls:21.0.5:win")
@@ -303,6 +305,10 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "com.nuvio.app.MainKt"
+
+        buildTypes.release.proguard {
+            isEnabled.set(false)
+        }
 
         nativeDistributions {
             targetFormats(TargetFormat.Exe, TargetFormat.Msi)
