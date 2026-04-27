@@ -1,101 +1,78 @@
-<div align="center">
+# NuvioWin
 
-  <img src="https://github.com/tapframe/NuvioTV/blob/main/assets/brand/app_logo_wordmark.png" alt="Nuvio" width="300" />
-  <br />
-  <br />
+NuvioWin is a Windows 10/11 desktop port of the official Nuvio Kotlin Multiplatform app. It keeps the shared Compose UI and feature architecture from `NuvioMedia/NuvioMobile`, then adds a JVM desktop target, Windows-safe storage, Windows packaging, and GitHub Actions releases.
 
-  [![Contributors][contributors-shield]][contributors-url]
-  [![Forks][forks-shield]][forks-url]
-  [![Stargazers][stars-shield]][stars-url]
-  [![Issues][issues-shield]][issues-url]
-  [![License][license-shield]][license-url]
+Upstream source: `NuvioMedia/NuvioMobile`, branch `cmp-rewrite`, commit `7ef0083a71a938cb7629b36ef5968a3c78fb9c0f`. See `UPSTREAM.md` for provenance.
 
-  <p>
-    A modern media hub for Android and iOS built with Kotlin Multiplatform and Compose Multiplatform.
-    <br />
-    Stremio addon ecosystem • Cross-platform
-  </p>
+## Architecture
 
-</div>
+- `composeApp/src/commonMain`: shared Compose UI, repositories, navigation, profiles, add-ons, streams, watch progress, settings, and sync logic.
+- `composeApp/src/androidMain` and `composeApp/src/iosMain`: original mobile platform integrations kept from upstream.
+- `composeApp/src/desktopMain`: NuvioWin platform implementations for Windows desktop.
+- Packaging uses JetBrains Compose Desktop native distributions with `.exe` and `.msi` targets.
 
-## About
+## Install
 
-Nuvio is the current Kotlin Multiplatform rewrite of the original React Native app. It delivers a shared Compose UI for Android and iOS while keeping the playback-focused experience, collection tools, watch progress flows, downloads, and Stremio addon ecosystem integration that shaped the earlier app.
+Download the latest Windows artifacts from GitHub Releases:
 
-The mobile app is built from a single shared codebase in [composeApp](./composeApp), with native platform entry points for Android and iOS.
+- `NuvioWin-*.exe`
+- `NuvioWin-*.msi`
+- `NuvioWin-portable.zip`
 
-## Installation
+For the portable zip, extract it and run `NuvioWin.exe`.
 
-### Android
+## Use
 
-Download the latest Android build from [GitHub Releases](https://github.com/NuvioMedia/NuvioMobile/releases/latest).
+- App data: `%APPDATA%\NuvioWin`
+- Downloads: `%APPDATA%\NuvioWin\Downloads`
+- Back navigation: `Escape` or `Alt+Left`
+- Player: `Space`/`K` play-pause, `Left`/`J` seek back, `Right`/`L` seek forward
 
-### iOS
+Some streams need headers, separate audio, or codecs JavaFX cannot play. In those cases NuvioWin shows a fallback to open the link externally or copy it.
 
-- [TestFlight](https://testflight.apple.com/join/u4y7MHK9)
+## Develop
 
-## Development
+Requirements:
 
-```bash
-git clone https://github.com/NuvioMedia/NuvioMobile.git
-cd NuvioMobile
-./scripts/run-mobile.sh android
-# or
-./scripts/run-mobile.sh ios
+- Windows 10/11
+- JDK 17+; JDK 21 recommended
+- PowerShell
+
+Run checks:
+
+```powershell
+.\scripts\check-windows.ps1
 ```
 
-### Project Structure
+Run locally:
 
-- `composeApp/` contains the shared Kotlin Multiplatform and Compose Multiplatform app code.
-- `composeApp/src/commonMain/` contains shared UI, features, repositories, and platform-agnostic logic.
-- `composeApp/src/androidMain/` contains Android-specific integrations.
-- `composeApp/src/iosMain/` contains iOS-specific integrations.
-- `iosApp/` contains the native Xcode project and iOS entry point.
-
-Useful commands:
-
-```bash
-./gradlew :composeApp:assembleDebug
-./gradlew :composeApp:compileKotlinIosSimulatorArm64
-./scripts/build-distribution.sh
+```powershell
+.\scripts\run-windows.ps1
 ```
 
-Versioning is driven from `iosApp/Configuration/Version.xcconfig`, which is used as the shared source of truth for both iOS and Android builds.
+Build Windows installers and portable zip:
 
-## Legal & DMCA
+```powershell
+.\scripts\build-windows.ps1 -Version v0.1.0
+```
 
-Nuvio functions solely as a client-side interface for browsing metadata and playing media provided by user-installed extensions and/or user-provided sources. It is intended for content the user owns or is otherwise authorized to access.
+Artifacts are written to `artifacts/windows`.
 
-Nuvio is not affiliated with any third-party extensions, catalogs, sources, or content providers. It does not host, store, or distribute any media content.
+## Release
 
-For comprehensive legal information, including our full disclaimer, third-party extension policy, and DMCA/Copyright information, please visit our [Legal & Disclaimer Page](https://nuvioapp.space/legal).
+GitHub Actions builds release artifacts on tags matching `v*` and creates a GitHub Release automatically.
 
-## Built With
+```powershell
+git tag v0.1.0
+git push origin v0.1.0
+```
 
-- Kotlin Multiplatform
-- Compose Multiplatform
-- Kotlin
-- AndroidX Media3
-- AVFoundation and native iOS integrations
+Pull requests run:
 
-## Star History
+```powershell
+.\gradlew.bat :composeApp:compileKotlinDesktop --stacktrace
+```
 
-<a href="https://www.star-history.com/#NuvioMedia/NuvioMobile&type=date&legend=top-left">
- <picture>
-   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=NuvioMedia/NuvioMobile&type=date&theme=dark&legend=top-left" />
-   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=NuvioMedia/NuvioMobile&type=date&legend=top-left" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=NuvioMedia/NuvioMobile&type=date&legend=top-left" />
- </picture>
-</a>
+## License
 
-<!-- MARKDOWN LINKS & IMAGES -->
-[contributors-shield]: https://img.shields.io/github/contributors/NuvioMedia/NuvioMobile.svg?style=for-the-badge
-[contributors-url]: https://github.com/NuvioMedia/NuvioMobile/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/NuvioMedia/NuvioMobile.svg?style=for-the-badge
-[forks-url]: https://github.com/NuvioMedia/NuvioMobile/network/members
-[stars-shield]: https://img.shields.io/github/stars/NuvioMedia/NuvioMobile.svg?style=for-the-badge
-[stars-url]: https://github.com/NuvioMedia/NuvioMobile/stargazers
-[issues-shield]: https://img.shields.io/github/issues/NuvioMedia/NuvioMobile.svg?style=for-the-badge
-[issues-url]: https://github.com/NuvioMedia/NuvioMobile/issues
-[license-shield]: https://img.shields.io/github/license/NuvioMedia/NuvioMobile.svg?style=for-the-badge
-[license-url]: https://github.com/NuvioMedia/NuvioMobile/blob/main/LICENSE
+NuvioWin is distributed under the GNU General Public License v3.0, matching the official upstream project. See `LICENSE`.

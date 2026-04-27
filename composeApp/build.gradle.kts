@@ -144,6 +144,11 @@ val releaseAppVersionName = readXcconfigValue(appVersionConfigFile, "MARKETING_V
 val releaseAppVersionCode = readXcconfigValue(appVersionConfigFile, "CURRENT_PROJECT_VERSION")
     ?.toIntOrNull()
     ?: error("CURRENT_PROJECT_VERSION is missing or invalid in ${appVersionConfigFile.path}")
+val windowsPackageVersion = (
+    providers.gradleProperty("nuvioWinVersion").orNull
+        ?: System.getenv("NUVIO_WIN_VERSION")
+        ?: releaseAppVersionName
+    ).trim().removePrefix("v")
 val iosDistribution = (
     providers.gradleProperty("nuvio.ios.distribution").orNull
         ?: System.getenv("NUVIO_IOS_DISTRIBUTION")
@@ -164,7 +169,10 @@ val generatedRuntimeConfigDir = layout.buildDirectory.dir("generated/runtime-con
 
 val generateRuntimeConfigs = tasks.register<GenerateRuntimeConfigsTask>("generateRuntimeConfigs") {
     outputDir.set(generatedRuntimeConfigDir)
-    localPropertiesFile.set(rootProject.layout.projectDirectory.file("local.properties"))
+    val localProperties = rootProject.file("local.properties")
+    if (localProperties.exists()) {
+        localPropertiesFile.set(rootProject.layout.projectDirectory.file("local.properties"))
+    }
     appVersionName.set(releaseAppVersionName)
     appVersionCode.set(releaseAppVersionCode)
 }
@@ -175,6 +183,12 @@ tasks.withType<KotlinCompilationTask<*>>().configureEach {
 
 kotlin {
     androidTarget {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
+
+    jvm("desktop") {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
@@ -243,6 +257,17 @@ kotlin {
             implementation(libs.androidx.media3.extractor)
             implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("lib-*.aar"))))
         }
+        val desktopMain by getting {
+            dependencies {
+                implementation(compose.desktop.currentOs)
+                implementation(libs.ktor.client.cio)
+                implementation("org.openjfx:javafx-base:21.0.5:win")
+                implementation("org.openjfx:javafx-controls:21.0.5:win")
+                implementation("org.openjfx:javafx-graphics:21.0.5:win")
+                implementation("org.openjfx:javafx-media:21.0.5:win")
+                implementation("org.openjfx:javafx-swing:21.0.5:win")
+            }
+        }
         commonMain.dependencies {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.ktor3)
@@ -266,6 +291,34 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+        }
+        val desktopTest by getting {
+            dependencies {
+                implementation(libs.kotlin.testJunit)
+            }
+        }
+    }
+}
+
+compose.desktop {
+    application {
+        mainClass = "com.nuvio.app.MainKt"
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Exe, TargetFormat.Msi)
+            packageName = "NuvioWin"
+            packageVersion = windowsPackageVersion
+            description = "Windows desktop build of Nuvio"
+            vendor = "NuvioWin"
+            copyright = "Copyright (c) Nuvio contributors"
+
+            windows {
+                dirChooser = true
+                menu = true
+                perUserInstall = true
+                shortcut = true
+                upgradeUuid = "2d0e55fc-95df-4d01-90af-cc48e90bb63e"
+            }
         }
     }
 }
